@@ -1,3 +1,5 @@
+import React from "react";
+
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import "./styles/app.sass";
 import Page from "./components/Page";
@@ -13,7 +15,16 @@ import Profile from "./screens/Profile";
 import ProfileEdit from "./screens/ProfileEdit";
 import Item from "./screens/Item";
 import PageList from "./screens/PageList";
+
+import './util/lang/i18n';
+import { useTranslation } from 'react-i18next';
+
+
 function App() {
+
+  const { t } = useTranslation();
+  React.translate = t;
+
   return (    
     <Router>
       <Switch>

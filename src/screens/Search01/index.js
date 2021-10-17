@@ -1,257 +1,137 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import cn from "classnames";
 import styles from "./Search01.module.sass";
 import { Range, getTrackBackground } from "react-range";
 import Icon from "../../components/Icon";
-//import Card from "../../components/CardBuy";
+import Card from "../../components/Card";
 import Dropdown from "../../components/Dropdown";
-import firebase from "../UploadDetails/firebase";
-//UploadDetails/firebase
+import dataFormatter from '@/util/dataFormatter.js'
+import api from 'api/index.js'
+import { Pagination } from 'antd';
+import { useHistory } from 'react-router-dom'
+
 // data
-//import { bids } from "../../mocks/bids";
-import CardBuy from "../../components/CardBuy";
+import { bids } from "../../mocks/bids";
 
-const navLinks = [
-  "All items", "Art", "Game", "Photography", "Music", "Video"
-];
-
-const dateOptions = ["Newest", "Oldest"];
-const likesOptions = ["Most liked", "Least liked"];
-const colorOptions = ["All colors", "Black", "Green", "Pink", "Purple"];
-const creatorOptions = ["Verified only", "All", "Most liked"];
+const searchTypeOptions = ["All items", "Art", "Collectibles", "Chair INO", "Invitation", "Contest"];
+const searchCurrencyOptions = ["All", "MATIC", "BNCH", "USDT", "XBNCH"];
+const searchJumpOptions = [{
+  value: 'auction',
+  label: "headerAuction"
+}, {
+  value: 'limited',
+  label: "headerLimited"
+}]
+const searchSortOptions = [{
+  value: 'recommend',
+  label: "limitedRecommend"
+}, {
+  value: 'recently',
+  label: "limitedRecently"
+}]
+const searchStatusOptions = [{
+  value: 'notended',
+  label: "auctionNotEnded"
+}, {
+  value: 'ended',
+  label: "auctionEnded"
+}]
 
 const Search = () => {
-  const [searchTerm,setSearchTerm]=useState('');
-  console.log('returnsearch',searchTerm)
+  const [showBids, setshowBids] = useState([])
+  const [total, settotal] = useState(12)
+  const [page, setpage] = useState(1)
+  const [rows, setrows] = useState(12)
+  const [type, settype] = useState(1)
+  const [status, setstatus] = useState(searchStatusOptions[0].value)
+  const [searchType, setsearchType] = useState(0)
+  const [searchCurrency, setsearchCurrency] = useState(searchCurrencyOptions[0])
+  const [searchSort, setsearchSort] = useState(searchSortOptions[0].value)
+  const [searchJump, setsearchJump] = useState(searchJumpOptions[0].value)
+  const history = useHistory();
 
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [date, setDate] = useState(dateOptions[0]);
-  const [likes, setLikes] = useState(likesOptions[0]);
-  const [color, setColor] = useState(colorOptions[0]);
-  const [creator, setCreator] = useState(creatorOptions[0]);
-
-  //const [search, setSearch] = useState("");
-  const [values, setValues] = useState([5]);
-  // const[getImgreffalgosale,setgetImgreffalgosale]=useState([]);
-  // console.log("getImgalgo",getImgreffalgosale)
-
-  const[getI,setgetI]=useState([]);
-  console.log("getImgal",getI)
-
-  const[getIm,setgetIm]=useState([]);
-  console.log("getImgalgosss",getIm)
-
-  
-
-  const dbcallsaleal=async(index)=>{
-    console.log("hello ramachandran")
-    setActiveIndex(index)
-    console.log("inside dbcallsalealgo function")
-    if(localStorage.getItem("wallet")  === null || localStorage.getItem("wallet")  === "" || localStorage.getItem("wallet")  === " " || localStorage.getItem("wallet") === 'undefined' || localStorage.getItem("wallet") === '' || localStorage.getItem("wallet") === "0x"){
-    }
-    else{    
-    let getalgo=localStorage.getItem("wallet");
-    //let req = [];  
-    // if(getalgo === ""){  
-    // }else{
-      //let req = [];
-    let req2 = [];//imagerefexplore//
-    firebase.database().ref("imagerefexploreoneAlgos").on("value", (data) => {
-      if (data) {
-        data.forEach((d) => {
-          req2.push(d.val())          
-        });        
-      }
-      
-    });    
-    setgetIm(req2)
-    let req=[];
-    getIm.map((a)=>{
-      console.log(`abb`, a)    
-      Object.keys(a).map((b)=>{
-        console.log(a[b].id);
-                req.push({
-                title: a[b].id,
-                price: a[b].priceSet,
-                highestBid: a[b].keyId,
-                counter:a[b].userName ,
-                //bid: 'New bid <span role="img" aria-label="fire">🔥</span>',
-                bid:a[b].ownerAddress,
-                image: a[b].imageUrl,
-                image2x: a[b].paramsdb,
-                category: a[b].privatekey,
-                categoryText: a[b].cAddress,
-                //purchasing !
-                url: a[b].history,
-                date:a[b].datesets,
-                description:a[b].description,
-                extra:a[b].extra1,
-                ipfsurl:a[b].ipfsUrl,
-                previousaddress:a[b].previousoaddress,
-                soldd:a[b].soldd,
-                whois:a[b].whois,
-                Mnemonic:a[b].Mnemonic,
-                users: [                
-                  {
-                    avatar: "/images/content/avatar-4.jpg",
-                  },
-                ],
-              })
-              
-      })      
-      setgetI(req)    
-    })    
-    console.log("cfbbba",req) 
+  const changePage = function(page, pageSize){
+    setpage(page);
+    setrows(pageSize)
   }
-  //}
+
+  useEffect(() => {
+    // todo Deaso: 最后一个参数时aid，貌似不需要
+    api.marketAllHandle(page, rows, type, 1, 
+      status,
+      (searchType == 0 ? "" : searchType), 
+      (searchCurrency == searchCurrencyOptions[0] ? "" : searchCurrency), 
+      searchSort, "").then((result) => {
+      console.log('getting search');
+      console.log(result);
+      settotal(result.total)
+      setshowBids(dataFormatter.formatItemList(result.list));
+    });
+  }, [page, rows, type, status, searchType, searchCurrency, searchSort])
+
+  useEffect(() => {
+    if(searchJump == 'limited') history.replace('/sellsearch01');
+  }, [searchJump])
   
-}
-  useEffect(()=>{dbcallsaleal()},[])
-
-  // const dbcallsalealgo=async()=>{
-  //   console.log("inside dbcallsalealgo function")    
-  //   let req = [];  
-  //   if(localStorage.getItem("walletalgo") === null || localStorage.getItem("walletalgo") === "0x"){  
-  //   }else{      
-  //     let getalgo=localStorage.getItem("walletalgo");
-      
-  //     //let kreq =[];
-  //     firebase.database().ref("imagerefexploreoneAlgos").child(getalgo).on("value", (data) => {
-  //       if (data) {
-  //         data.forEach((d) => {
-  //           //console.log("keycheck",d.key)
-  //           let value=d.val();
-  //           req.push(
-              
-  //             {
-  //             title: value.id,
-  //             price: value.priceSet,
-  //             highestBid: value.keyId,
-  //             counter:value.userName ,
-  //             //bid: 'New bid <span role="img" aria-label="fire">🔥</span>',
-  //             bid:value.ownerAddress,
-  //             image: value.imageUrl,
-  //             image2x: value.paramsdb,
-  //             category: value.privatekey,
-  //             categoryText: value.cAddress,
-  //             //purchasing !
-  //             url: value.history,
-  //             date:value.datesets,
-  //             description:value.description,
-  //             extra:value.extra1,
-  //             ipfsurl:value.ipfsUrl,
-  //             previousaddress:value.previousoaddress,
-  //             soldd:value.soldd,
-  //             whois:value.whois,
-  //             users: [                
-  //               {
-  //                 avatar: "/images/content/avatar-4.jpg",
-  //               },
-  //             ],
-  //             },
-            
-  //           )
-  //         });        
-  //       }
-  //     });
-  //     setgetImgreffalgosale(req);
-    
-  //   }
-  //   console.log("acc",getImgreffalgosale)
-  
-  // }
-  
-  // useEffect(()=>{dbcallsalealgo()},[])
-  
-
-  // const handleSubmit = (e) => {
-
-  //   if(searchTerm === '') return getI
-  //   let data= getI.filter((val)=>{
-  //     return val.counter.toLowerCase().trim().includes(searchTerm.toLowerCase().trim())
-      
-  //   })
-  //   //console.log('returndata',data)
-  //   return data;    
-  // };
-
-  const STEP = 0.1;
-  const MIN = 0.01;
-  const MAX = 10;
-
   return (
     <div className={cn("section-pt80", styles.section)}>
-      
       <div className={cn("container", styles.container)}>
         <div className={styles.top}>
-          <div className={styles.title}>Type your keywords</div>
-          <form
+          <div className={styles.title}>{React.translate('auctionTitle')}</div>
+          {/* <form
             className={styles.search}
-            action=""            
+            action=""
+            onSubmit={() => handleSubmit()}
           >
-
-{/* onSubmit={() => handleSubmit()} */}
-            
-            <input            
+            <input
               className={styles.input}
               type="text"
-              value={searchTerm}
-              onChange={event => {setSearchTerm(event.target.value)}}
-              // onChange={(e) => setSearch(e.target.value)}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               name="search"
               placeholder="Search ..."
               required
             />
-            {/* <button className={styles.result}>
+            <button className={styles.result}>
               <Icon name="search" size="16" />
-            </button> */}
-          </form>
-
-          {/* {
-        searchTerm !== '' &&
-      <>
-      {handleSubmit().map((val,key)=>{
-        
-        return (
-        <div className='user' key={key}>
-          <h5 onClick={()=>setSearchTerm(val.counter)} style={{cursor:'pointer'}}>{val.counter}</h5>
-        </div>
-        )
-      })}
-      </>
-} */}
-
-          
+            </button>
+          </form> */}
         </div>
         <div className={styles.sorting}>
           <div className={styles.dropdown}>
             <Dropdown
               className={styles.dropdown}
-              value={date}
-              setValue={setDate}
-              options={dateOptions}
+              value={React.translate(searchJumpOptions[0].label)}
+              setValue={setsearchJump}
+              options={(()=>{
+                var arr = [];
+                searchJumpOptions.map((item, index)=>{
+                  arr.push({
+                    value: item.value,
+                    label: React.translate(item.label)
+                  });
+                })
+                return arr;
+              })()}
             />
           </div>
           <div className={styles.nav}>
-            {navLinks.map((x, index) => (                                       
+            {searchTypeOptions.map((x, index) => (
               <button
                 className={cn(styles.link, {
-                  [styles.active]: index === activeIndex,
-                })}                                
-                onClick={() =>                  
-                  //console.log("index",index)
-                  dbcallsaleal(index)
-                }
+                  [styles.active]: index === searchType,
+                })}
+                onClick={() => setsearchType(index)}
                 key={index}
               >
                 {x}
-              </button>                          
+              </button>
             ))}
           </div>
         </div>
         <div className={styles.row}>
           <div className={styles.filters}>
-            <div className={styles.range}>
+            {/* <div className={styles.range}>
               <div className={styles.label}>Price range</div>
               <Range
                 values={values}
@@ -324,30 +204,57 @@ const Search = () => {
                 )}
               />
               <div className={styles.scale}>
-                <div className={styles.number}>0.01 Algos</div>
-                <div className={styles.number}>10 Algos</div>
+                <div className={styles.number}>0.01 ETH</div>
+                <div className={styles.number}>10 ETH</div>
               </div>
-            </div>
+            </div> */}
             <div className={styles.group}>
               <div className={styles.item}>
-                <div className={styles.label}>Price</div>
+                <div className={styles.label}>{React.translate('limitedSort')}</div>
                 <Dropdown
                   className={styles.dropdown}
-                  value={likes}
-                  setValue={setLikes}
-                  options={likesOptions}
+                  value={React.translate(searchSortOptions[0].label)}
+                  setValue={setsearchSort}
+                  options={(()=>{
+                    var arr = [];
+                    searchSortOptions.map((item, index)=>{
+                      arr.push({
+                        value: item.value,
+                        label: React.translate(item.label)
+                      });
+                    })
+                    return arr;
+                  })()}
                 />
               </div>
               <div className={styles.item}>
-                <div className={styles.label}>Color</div>
+                <div className={styles.label}>{React.translate('limitedCurrency')}</div>
                 <Dropdown
                   className={styles.dropdown}
-                  value={color}
-                  setValue={setColor}
-                  options={colorOptions}
+                  value={searchCurrency}
+                  setValue={setsearchCurrency}
+                  options={searchCurrencyOptions}
                 />
               </div>
               <div className={styles.item}>
+                <div className={styles.label}>{React.translate('auctionStatus')}</div>
+                <Dropdown
+                  className={styles.dropdown}
+                  value={React.translate(searchStatusOptions[0].label)}
+                  setValue={setstatus}
+                  options={(()=>{
+                    var arr = [];
+                    searchStatusOptions.map((item, index)=>{
+                      arr.push({
+                        value: item.value,
+                        label: React.translate(item.label)
+                      });
+                    })
+                    return arr;
+                  })()}
+                />
+              </div>
+              {/* <div className={styles.item}>
                 <div className={styles.label}>Creator</div>
                 <Dropdown
                   className={styles.dropdown}
@@ -355,24 +262,26 @@ const Search = () => {
                   setValue={setCreator}
                   options={creatorOptions}
                 />
-              </div>
+              </div> */}
             </div>
-            <div className={styles.reset}>
+            {/* <div className={styles.reset}>
               <Icon name="close-circle-fill" size="24" />
               <span>Reset filter</span>
-            </div>
+            </div> */}
           </div>
           <div className={styles.wrapper}>
             <div className={styles.list}>
-              
-              {getI.map((x, index) => (                              
-                <CardBuy className={styles.card} item={x} key={index} />                
+              {showBids.map((x, index) => (
+                <Card className={styles.card} item={x} key={index} type={type} />
               ))}
             </div>
-            <div className={styles.btns}>
+            {/* <div className={styles.btns}>
               <button className={cn("button-stroke", styles.button)}>
                 <span>Load more</span>
               </button>
+            </div> */}
+            <div className={styles.page}>
+              <Pagination defaultPageSize={12} defaultCurrent={1} total={total} onChange={changePage}/>
             </div>
           </div>
         </div>
