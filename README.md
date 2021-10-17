@@ -2,8 +2,6 @@
 
 https://github.com/EthereumInsurance/InsFrontend
 
-
-
 https://github.com/maxmarinich/nft-zo
 
   // "scripts": {
@@ -13,6 +11,9 @@ https://github.com/maxmarinich/nft-zo
   //   "eject": "react-scripts eject"
   // },
 
+### workspace 
+
+https://coral-crocodile-h1y3vw55.ws-us17.gitpod.io/
 
 
 # !!!!! LivePreview created only for easy viewing of pages, you can remove it by setting the variable LivePreview false (the path to the file - src/components/Page/index.js => const livePreview = false)
