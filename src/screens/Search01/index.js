@@ -6,7 +6,7 @@ import Icon from "../../components/Icon";
 import Card from "../../components/Card";
 import Dropdown from "../../components/Dropdown";
 import dataFormatter from '@/util/dataFormatter.js'
-import api from 'api/index.js'
+import api from '../../../api/index.js'
 import { Pagination } from 'antd';
 import { useHistory } from 'react-router-dom'
 
