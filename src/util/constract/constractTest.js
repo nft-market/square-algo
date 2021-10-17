@@ -1,6 +1,6 @@
 import Web3 from 'web3'
-import abi from '../../..//util/contractAbi/abiTestData'
-import contractAddress from '../../../util/contractAddress/addressTestData'
+import abi from '../../util/contractAbi/abiTestData'
+import contractAddress from '../../util/contractAddress/addressTestData'
 
 let ethereum = window.ethereum;
 

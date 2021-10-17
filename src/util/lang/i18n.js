@@ -16,10 +16,10 @@ const resources = {
 console.log(resources);
 
 let language = 'en'
-if (localStorage.chair_language != undefined && localStorage.chair_language != null && localStorage.chair_language != '') {
+if (localStorage.chair_language !== undefined && localStorage.chair_language !== null && localStorage.chair_language !== '') {
   language = localStorage.chair_language
 } else {
-  if ('zh' == navigator.language) {
+  if ('zh' === navigator.language) {
     language = 'zh'
   }
 }
